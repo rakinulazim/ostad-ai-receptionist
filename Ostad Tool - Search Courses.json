@@ -1,0 +1,141 @@
+﻿{
+  "name": "Ostad Tool - Search Courses",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "id": "57441a74-0e3c-4b5e-a2df-95e058dd5525",
+      "name": "Tool Input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -32,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Ostad AI Receptionist DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1,
+          "mode": "list",
+          "cachedResultName": "Courses",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=1"
+        },
+        "options": {}
+      },
+      "id": "9401db5e-6f2e-4328-a91a-e5bd5c3fc6d4",
+      "name": "Read Courses Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        144,
+        96
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KmaB872r1U13Yu0z",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "err-1",
+              "name": "response",
+              "value": "Sorry, I could not access the course database right now. Please try again in a moment.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "905dc3d5-a8ac-475f-b78b-ee54f2dfd8d3",
+      "name": "Database Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const q = (($('Tool Input').first().json.query) || '').toLowerCase().trim();\nconst rows = $input.all().map(i => i.json).filter(r => r && (r.CourseName || r['Course Name']));\nif (!rows.length) {\n  return [{ json: { response: 'Sorry, the course catalog is currently empty. Offer to save the caller as a lead so the team can follow up.' } }];\n}\nconst nameOf = r => r.CourseName ?? r['Course Name'] ?? '';\nconst matches = q ? rows.filter(r => Object.values(r).join(' ').toLowerCase().includes(q)) : rows;\nif (!matches.length) {\n  return [{ json: { response: `No exact match found for \"${q}\". Available courses are: ` + rows.map(nameOf).join(', ') + '. Ask the caller which one interests them.' } }];\n}\nconst lines = matches.map(r => `${nameOf(r)} - Duration: ${r.Duration || ''}, Fee: ${r.Fee || ''} taka${r.BatchStart ? ', next batch ' + r.BatchStart : ''}${r.Schedule ? ', classes ' + r.Schedule : ''}`.trim());\nreturn [{ json: { response: lines.join(' | ') } }];"
+      },
+      "id": "e13d4fc4-6ee1-4fcb-8c17-6b83a5c49852",
+      "name": "Format Course Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Tool Input": {
+      "main": [
+        [
+          {
+            "node": "Read Courses Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Courses Sheet": {
+      "main": [
+        [
+          {
+            "node": "Format Course Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Database Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "2c002f89-450a-4cfd-8741-73a3942e4f62",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "defe248e7211b22bef1f3eeb4374b117cf87e440790d055c638ca9df02d4785b"
+  },
+  "nodeGroups": [],
+  "id": "QsVXN5Pw4ogAjpsN",
+  "tags": []
+}

@@ -1,0 +1,562 @@
+﻿{
+  "name": "Ostad Tool - Book Consultation",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "name"
+            },
+            {
+              "name": "phone"
+            },
+            {
+              "name": "preferred_date"
+            },
+            {
+              "name": "preferred_time"
+            }
+          ]
+        }
+      },
+      "id": "c7d398b9-f3c4-46a1-9d39-ee1a021d412b",
+      "name": "Tool Input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Ostad AI Receptionist DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 3,
+          "mode": "list",
+          "cachedResultName": "Appointments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=3"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $('Tool Input').first().json.preferred_date }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8deea918-47b6-4963-89dd-9354c44ec14f",
+      "name": "Read Appointments Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        144
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KmaB872r1U13Yu0z",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "err-1",
+              "name": "response",
+              "type": "string",
+              "value": "Sorry, the booking system is temporarily unavailable. Offer to save the caller details so the team can call back and book manually."
+            },
+            {
+              "id": "err-2",
+              "name": "success",
+              "type": "boolean",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0bce1ac7-86a8-4c29-91a6-9632bfe3121e",
+      "name": "Database Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const req = $('Tool Input').first().json;\n\n// Convert different time formats to HH:MM (24-hour)\nfunction to24Hour(time) {\n  if (!time) return \"\";\n\n  let t = String(time).trim().toLowerCase();\n\n  // Already 24-hour format (14:30)\n  if (/^\\d{1,2}:\\d{2}$/.test(t)) {\n    return t.padStart(5, \"0\");\n  }\n\n  // 12-hour format (2:30 PM)\n  const match = t.match(/^(\\d{1,2})(?::(\\d{2}))?\\s*(am|pm)$/);\n\n  if (!match) return t;\n\n  let hour = parseInt(match[1], 10);\n  const minute = match[2] || \"00\";\n  const period = match[3];\n\n  if (period === \"pm\" && hour !== 12) hour += 12;\n  if (period === \"am\" && hour === 12) hour = 0;\n\n  return `${String(hour).padStart(2,\"0\")}:${minute}`;\n}\n\nconst requestedTime = to24Hour(req.preferred_time);\n\nconst rows = $input\n  .all()\n  .map(i => i.json)\n  .filter(r => r && r.Time);\n\nconst conflict = rows.some(r => {\n  return (\n    to24Hour(r.Time) === requestedTime &&\n    String(r.Status || \"\").toLowerCase() !== \"cancelled\"\n  );\n});\n\nif (!req.name || !req.phone || !req.preferred_date || !req.preferred_time) {\n  return [{\n    json: {\n      available: false,\n      missing: true,\n      response: \"I still need the caller's name, phone number, preferred date and preferred time.\"\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    available: !conflict,\n    missing: false,\n    response: conflict\n      ? `That slot on ${req.preferred_date} at ${req.preferred_time} is already booked. Please ask the caller to choose another time.`\n      : \"Slot is free.\"\n  }\n}];"
+      },
+      "id": "50b3b932-e3a1-4a7c-b0b3-de48d71d13b4",
+      "name": "Check Availability",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.available }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3aecc5fa-1c4d-48ef-8aa0-0644e441220c",
+      "name": "Slot Available?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Ostad AI Receptionist DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 3,
+          "mode": "list",
+          "cachedResultName": "Appointments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=3"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "AppointmentID": "={{ 'APT-' + $now.format('yyLLddHHmmss') }}",
+            "CalendarEventID": "",
+            "Course": "",
+            "Date": "={{ $('Tool Input').first().json.preferred_date }}",
+            "Email": "",
+            "Name": "={{ $('Tool Input').first().json.name }}",
+            "Phone": "={{ $('Tool Input').first().json.phone }}",
+            "Status": "Confirmed",
+            "Time": "={{ $('Tool Input').first().json.preferred_time }}",
+            "Timestamp": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "AppointmentID",
+              "displayName": "AppointmentID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Course",
+              "displayName": "Course",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CalendarEventID",
+              "displayName": "CalendarEventID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a5a1cac2-ff57-4653-b6e5-3bd12f1906e3",
+      "name": "Save Appointment",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        -32
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KmaB872r1U13Yu0z",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ok-1",
+              "name": "response",
+              "type": "string",
+              "value": "=Booking confirmed for {{ $('Tool Input').first().json.name }} on {{ $('Tool Input').first().json.preferred_date }} at {{ $('Tool Input').first().json.preferred_time }}. Tell the caller a counselor will call them at {{ $('Tool Input').first().json.phone }}."
+            },
+            {
+              "id": "ok-2",
+              "name": "success",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4f561a41-368e-4bb5-99b6-fa9f4e20db24",
+      "name": "Booking Confirmed Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "na-1",
+              "name": "response",
+              "type": "string",
+              "value": "={{ $json.response }}"
+            },
+            {
+              "id": "na-2",
+              "name": "success",
+              "type": "boolean",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "32ad5e1b-9a6e-486c-a453-2b35ca71a4c9",
+      "name": "Slot Unavailable Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "cachedResultName": "Ostad Consultaions",
+          "mode": "list",
+          "value": "YOUR_GOOGLE_CALENDAR_ID@group.calendar.google.com"
+        },
+        "start": "={{ DateTime.fromFormat($('Tool Input').first().json.preferred_date + ' ' + $('Tool Input').first().json.preferred_time, 'yyyy-MM-dd h:mm a').toISO() }}",
+        "end": "={{ DateTime.fromFormat($('Tool Input').first().json.preferred_date + ' ' + $('Tool Input').first().json.preferred_time, 'yyyy-MM-dd h:mm a').plus({ hours: 1 }).toISO() }}",
+        "additionalFields": {
+          "description": "=Phone: {{ $('Tool Input').first().json.phone }}\nBooked via AI Receptionist",
+          "summary": "=Ostad Consultation - {{ $('Tool Input').first().json.name }}"
+        }
+      },
+      "id": "95be92c1-0463-42ab-b879-f9cf2ca6d618",
+      "name": "Create Calendar Event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        -80
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ywEJCCiTsNupivAi",
+          "name": "Google Calendar account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "=New Consultation Booking - {{ $('Tool Input').first().json.name }}",
+        "message": "=<p>A new consultation has been booked via the AI Receptionist.</p><ul><li><b>Name:</b> {{ $('Tool Input').first().json.name }}</li><li><b>Phone:</b> {{ $('Tool Input').first().json.phone }}</li><li><b>Date:</b> {{ $('Tool Input').first().json.preferred_date }}</li><li><b>Time:</b> {{ $('Tool Input').first().json.preferred_time }}</li></ul>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "0daa82ea-e01f-42c1-b27d-a5357a0e3b22",
+      "name": "Send Booking Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        -80
+      ],
+      "webhookId": "0c5c377d-4b93-4586-86a7-6aa951d66d2d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "s4gorvzTmHN37jYh",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=📅 <b>New Consultation Booked</b>\n\n👤 {{ $('Tool Input').first().json.name }}\n📞 {{ $('Tool Input').first().json.phone }}\n📆 {{ $('Tool Input').first().json.preferred_date }} at {{ $('Tool Input').first().json.preferred_time }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "7440428e-93a8-4747-978f-50aea6d1530e",
+      "name": "Notify Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1568,
+        -80
+      ],
+      "webhookId": "34f27aff-edaa-4ed8-9091-d15ce0ddb055",
+      "credentials": {
+        "telegramApi": {
+          "id": "KegQGeJ2H2cIm5tZ",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Tool Input": {
+      "main": [
+        [
+          {
+            "node": "Read Appointments Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Appointments Sheet": {
+      "main": [
+        [
+          {
+            "node": "Check Availability",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Database Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Availability": {
+      "main": [
+        [
+          {
+            "node": "Slot Available?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slot Available?": {
+      "main": [
+        [
+          {
+            "node": "Save Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slot Unavailable Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Appointment": {
+      "main": [
+        [
+          {
+            "node": "Create Calendar Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Database Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendar Event": {
+      "main": [
+        [
+          {
+            "node": "Send Booking Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Booking Email": {
+      "main": [
+        [
+          {
+            "node": "Notify Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Telegram": {
+      "main": [
+        [
+          {
+            "node": "Booking Confirmed Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "c5ee9469-01e3-40d6-8734-6e5587eec859",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "defe248e7211b22bef1f3eeb4374b117cf87e440790d055c638ca9df02d4785b"
+  },
+  "nodeGroups": [],
+  "id": "GBslyhSVWiOWlq73",
+  "tags": []
+}

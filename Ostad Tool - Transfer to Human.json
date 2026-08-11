@@ -1,0 +1,294 @@
+﻿{
+  "name": "Ostad Tool - Transfer to Human",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "caller_name"
+            },
+            {
+              "name": "phone"
+            },
+            {
+              "name": "reason"
+            }
+          ]
+        }
+      },
+      "id": "d62eaae8-a083-4177-b212-4959cdaefe26",
+      "name": "Tool Input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "Ostad AI Receptionist DB",
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Escalations",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=4",
+          "mode": "list",
+          "value": 4
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.caller_name }}",
+            "Phone": "={{ $json.phone }}",
+            "Reason": "={{ $json.reason }}",
+            "Status": "Open"
+          },
+          "schema": [
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "Name",
+              "id": "Name",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "Phone",
+              "id": "Phone",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": false,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "Reason",
+              "id": "Reason",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": false,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "Status",
+              "id": "Status",
+              "required": false,
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f1d5f2d6-5c81-4a53-bfdc-94c1c0050c07",
+      "name": "Create Support Request",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        96
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KmaB872r1U13Yu0z",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "err-1",
+              "name": "response",
+              "value": "Sorry, the support system is unavailable. Give the caller the office number and apologize for the inconvenience.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9b458785-b2a4-44dc-937b-5a47568e4a4b",
+      "name": "Database Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "SUPPORT_TEAM_EMAIL@example.com",
+        "subject": "=[Ostad AI Receptionist] Human handoff requested by {{ $('Tool Input').first().json.caller_name }}",
+        "message": "=<p>A caller asked to speak with a human.</p><ul><li><b>Name:</b> {{ $('Tool Input').first().json.caller_name }}</li><li><b>Phone:</b> {{ $('Tool Input').first().json.phone }}</li><li><b>Reason:</b> {{ $('Tool Input').first().json.reason }}</li><li><b>Time:</b> {{ $now.toISO() }}</li></ul><p>Please call back as soon as possible.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "6b93c44e-8bdb-44a3-ac21-5512afd5a737",
+      "name": "Notify Support Team",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        0
+      ],
+      "executeOnce": true,
+      "webhookId": "b95c1e6d-efac-47d6-a058-e48045e0f2a2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "s4gorvzTmHN37jYh",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ok-1",
+              "name": "response",
+              "value": "=Support request created and the human team has been notified. Tell {{ $('Tool Input').first().json.caller_name }} that someone will call them back at {{ $('Tool Input').first().json.phone }} shortly, then politely end the call.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ea21465a-2589-4f6b-8411-87d4320a8c55",
+      "name": "Handoff Confirmed Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Transfer to Human (MCP Tool)\nInputs: caller_name, phone, reason\nLogs a ticket in SupportRequests tab + emails the support team via Gmail.\nEmail failure does not block the ticket (continueRegularOutput).",
+        "height": 200,
+        "width": 300
+      },
+      "id": "46801eba-6d60-4f29-9b10-299d3dd9373c",
+      "name": "Sticky Note 4d3f5e46",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=🚨 <b>Human Handoff Requested</b>\n\n👤 {{ $('Tool Input').first().json.caller_name }}\n📞 {{ $('Tool Input').first().json.phone }}\n📝 {{ $('Tool Input').first().json.reason }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "65bfbff7-8de8-4936-88e9-4b79b1b05072",
+      "name": "Notify Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        192
+      ],
+      "webhookId": "3b6e6e9c-1b55-4f0c-84fa-086a3219d386",
+      "credentials": {
+        "telegramApi": {
+          "id": "KegQGeJ2H2cIm5tZ",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Tool Input": {
+      "main": [
+        [
+          {
+            "node": "Create Support Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Support Request": {
+      "main": [
+        [
+          {
+            "node": "Notify Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Database Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Support Team": {
+      "main": [
+        [
+          {
+            "node": "Handoff Confirmed Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Telegram": {
+      "main": [
+        [
+          {
+            "node": "Notify Support Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "3f3c1b4d-2681-4209-a277-4b4735e387a6",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "defe248e7211b22bef1f3eeb4374b117cf87e440790d055c638ca9df02d4785b"
+  },
+  "nodeGroups": [],
+  "id": "pOeDAqK4kVsC0Tz6",
+  "tags": []
+}
