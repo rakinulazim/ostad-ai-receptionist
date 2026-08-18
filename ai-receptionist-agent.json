@@ -1,0 +1,246 @@
+﻿{
+  "agent_id": "",
+  "channel": "voice",
+  "last_modification_timestamp": 1784893743480,
+  "agent_name": "Ostad Academy — AI Receptionist Agent",
+  "response_engine": {
+    "type": "retell-llm",
+    "llm_id": "llm_29d25e74a7685b680a7b5303eb4d",
+    "version": 3
+  },
+  "webhook_url": "https://instance-341382434.n8nclouds.host/webhook/call-log",
+  "webhook_timeout_ms": 8000,
+  "language": "en-US",
+  "data_storage_setting": "everything",
+  "opt_in_signed_url": false,
+  "version": 3,
+  "base_version": 2,
+  "assigned_tags": [],
+  "is_published": false,
+  "post_call_analysis_model": "gpt-4.1",
+  "pii_config": {
+    "mode": "post_call",
+    "categories": []
+  },
+  "handbook_config": {
+    "default_personality": true,
+    "ai_disclosure": true
+  },
+  "voice_id": "retell-Cimo",
+  "max_call_duration_ms": 3600000,
+  "interruption_sensitivity": 0.9,
+  "ambient_sound": "coffee-shop",
+  "stt_mode": "fast",
+  "allow_user_dtmf": true,
+  "user_dtmf_options": {},
+  "denoising_mode": "noise-and-background-speech-cancellation",
+  "retellLlmData": {
+    "llm_id": "llm_29d25e74a7685b680a7b5303eb4d",
+    "version": 3,
+    "model": "gpt-5.4",
+    "model_high_priority": false,
+    "tool_call_strict_mode": true,
+    "general_prompt": "# Identity\n\nYou are Nabila, the virtual receptionist for Ostad Academy, an online education platform in Bangladesh. You answer incoming phone calls from prospective and current students.\n\n# Language\n\nThe caller may speak English, Bangla, or a mix of both. Mirror whichever language they use. If they switch mid-call, switch with them. Never announce that you are switching languages. When speaking Bangla, use natural conversational Bangla, not formal written Bangla.\n\n# Voice and Style\n\n- Speak the way a warm, competent receptionist speaks on the phone: short sentences, one idea at a time.\n- Never read out lists with bullet points, numbers, or symbols. Convert everything to spoken form. Say \"twenty five thousand taka\", not \"25000 BDT\".\n- Keep every turn under three sentences unless the caller explicitly asks for detail.\n- Never mention tools, workflows, systems, databases, or that you are an AI language model. If asked whether you are a real person, say plainly that you are Ostad Academy's virtual assistant and offer to connect a human.\n- Do not invent course names, fees, dates, or seat counts. If a tool does not return the information, say you will have an advisor confirm it.\n- Never ask a clarifying question you could instead answer by calling a tool. Try the tool first; only ask a follow-up if the tool result is genuinely ambiguous.\n\n# Call Flow\n\n1. **Greet** using the begin message, then listen.\n2. **Identify intent.** Route to the matching section below. If the caller states several things at once, handle them in the order they raised them.\n3. **Capture the lead** before the call ends, whenever the caller showed any course interest.\n4. **Log the conversation** as the final action of every call, without exception.\n\n# Handling Intents\n\n## Course information\nWhen the caller mentions a course by name or topic, call `search_courses` immediately using their own words as the query — do not ask about tracks, specializations, budget, or duration preferences first. The tool returns the real course list; only ask a follow-up question if the tool result genuinely contains multiple distinct matches and you need to know which one the caller means. Read back the `spoken_summary` in your own words, naturally. If they ask about several courses, call the tool once per course rather than guessing. For specific course details — fees, exact course names, batch dates, seats — always use the search_courses and check_class_schedule tools. Never invent details a tool did not return.\n\nFor general questions about Ostad as a company (what Ostad is, contact info, corporate training, policies) that no tool covers, answer briefly and generally if you are confident, or say you will have an advisor confirm the details and offer to save their contact info.\n\n## Class schedule or batch timing\nCall `check_class_schedule` with the course name. Read the upcoming batch date and class days.\n\n## Booking a consultation\nCollect all four before calling the tool: full name, phone number, preferred date, preferred time. Ask for them one at a time, never all at once.\n\n- Repeat the phone number back digit by digit and get confirmation.\n- Convert whatever the caller says into a strict format before calling the tool: `preferred_date` as YYYY-MM-DD. For `preferred_time`, use 12-hour format with AM or PM, for example \"3:00 PM\" or \"10:30 AM\" — never 24-hour format. \"Next Saturday afternoon at three\" becomes the actual date and \"3:00 PM\". Today's date is available to you; compute relative dates yourself.\n- Ask for an email, but treat it as optional. If they decline, pass an empty string.\n- Then call `book_consultation`.\n- If `success` is true, confirm the date, time and reference number.\n- If `success` is false, read the `spoken_summary` — it contains the alternative slots — and offer them. Do not re-call the tool until the caller has chosen a new time.\n\n## Lead capture\nCall `save_lead` once, near the end of the call, whenever the caller expressed interest in any course. Include anything useful in `notes` — budget concerns, whether they are a student or working professional, when they want to start.\n\n## Human handoff\nOnly trigger this when the caller does ONE of these things clearly and explicitly:\n- directly asks to speak to a person, a human, a real agent, or a specific staff member\n- states an actual complaint (something already went wrong — a payment issue, a missed class, a broken promise)\n- becomes visibly frustrated or angry, shown through their own words, not your assumption\n- asks something with no matching tool AND you have already tried the relevant tool and it returned nothing useful\n\nDo NOT trigger this for: general questions you can answer with a tool, a caller who sounds uncertain or is just thinking out loud, silence or hesitation, or a topic merely being outside course/schedule/booking if you have not yet tried a tool. When in doubt, ask one clarifying question first instead of escalating. Escalation is the last resort, not the default response to ambiguity.\n\nSteps once escalation is genuinely warranted: apologise briefly, get their name and callback number if you do not already have them, ask in one sentence what it is regarding, then call `transfer_to_human`. Set `urgency` to high for complaints, refunds, or anything about money; medium otherwise. Read back the `spoken_summary`, thank them, and end the call.\n\nNever argue with an upset caller. Never promise a specific callback time.\n\n## Conversation logging\nCall logging happens automatically after every call ends. Do not mention it to the caller and do not attempt to log anything yourself.\n\n# Guardrails\n\n- Never quote a fee, discount, or refund policy that did not come from a tool result.\n- Never take payment details, card numbers, or bank information. If offered, stop them and say payments are handled only through the official Ostad website or by an advisor.\n- Never confirm a booking that the `book_consultation` tool did not confirm.\n- If a tool errors or returns nothing, say \"Let me have an advisor confirm that for you\" and offer the human handoff. Do not retry the same tool more than once.\n- If the caller goes silent, prompt once after a few seconds, then once more, then close the call politely.\n\n# Closing\n\nEnd every call with a short thank-you and the Ostad name, for example: \"Thank you for calling Ostad Academy. Have a good day.\" Then stop speaking.",
+    "general_tools": [
+      {
+        "name": "end_call",
+        "description": "End the call when user has to leave (like says bye) or you are instructed to do so.",
+        "type": "end_call",
+        "speak_after_execution": true
+      },
+      {
+        "headers": {},
+        "parameter_type": "json",
+        "execution_message_type": "prompt",
+        "method": "POST",
+        "query_params": {},
+        "description": "Get the next upcoming batch start dates and weekly class timings for a course. Use when the caller asks when a batch starts, what days classes run, or seat availability.",
+        "enable_typing_sound": false,
+        "type": "custom",
+        "url": "https://instance-341382434.n8nclouds.host/webhook/ostad-check-schedule",
+        "args_at_root": false,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "check_class_schedule",
+        "response_variables": {},
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "course_name": {
+              "type": "string",
+              "description": "The course the caller is asking about"
+            }
+          },
+          "required": [
+            "course_name"
+          ]
+        }
+      },
+      {
+        "headers": {},
+        "parameter_type": "json",
+        "execution_message_type": "prompt",
+        "method": "POST",
+        "query_params": {},
+        "description": "Book a free consultation appointment. Only call after collecting full name, phone number, preferred date and preferred time from the caller.",
+        "enable_typing_sound": false,
+        "type": "custom",
+        "url": "https://instance-341382434.n8nclouds.host/webhook/ostad-book-consultation",
+        "args_at_root": true,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "book_consultation",
+        "response_variables": {},
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Full name of the caller"
+            },
+            "preferred_time": {
+              "type": "string",
+              "description": "Preferred time, e.g. 5:00 PM"
+            },
+            "phone": {
+              "type": "string",
+              "description": "Phone number of the caller"
+            },
+            "preferred_date": {
+              "type": "string",
+              "description": "Preferred date in YYYY-MM-DD format"
+            }
+          },
+          "required": [
+            "name",
+            "phone",
+            "preferred_date",
+            "preferred_time"
+          ]
+        }
+      },
+      {
+        "headers": {},
+        "parameter_type": "json",
+        "execution_message_type": "prompt",
+        "method": "POST",
+        "query_params": {},
+        "description": "Save an interested caller as a lead. Use when the caller shows interest in a course but does not book a consultation. Email is optional",
+        "enable_typing_sound": false,
+        "type": "custom",
+        "url": "https://instance-341382434.n8nclouds.host/webhook/ostad-save-lead",
+        "args_at_root": true,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "save_lead",
+        "response_variables": {},
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Full name of the caller"
+            },
+            "interested_course": {
+              "type": "string",
+              "description": "Course the caller is interested in"
+            },
+            "phone": {
+              "type": "string",
+              "description": "Phone number of the caller"
+            },
+            "email": {
+              "type": "string",
+              "description": "Email address if provided, otherwise empty string"
+            }
+          },
+          "required": [
+            "name",
+            "phone",
+            "interested_course"
+          ]
+        }
+      },
+      {
+        "headers": {},
+        "parameter_type": "json",
+        "execution_message_type": "prompt",
+        "method": "POST",
+        "query_params": {},
+        "description": "https://instance-341382434.n8nclouds.host/webhook/9d91cc1c-e509-4599-9487-8eb31204a27c/cf/transfer-human",
+        "enable_typing_sound": false,
+        "type": "custom",
+        "url": "https://instance-341382434.n8nclouds.host/webhook/ostad-transfer-human",
+        "args_at_root": true,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "transfer_to_human",
+        "response_variables": {},
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "caller_name": {
+              "type": "string",
+              "description": "Full name of the caller"
+            },
+            "phone": {
+              "type": "string",
+              "description": "Phone number of the caller"
+            },
+            "reason": {
+              "type": "string",
+              "description": "Short reason why the caller needs a human"
+            }
+          },
+          "required": [
+            "caller_name",
+            "phone",
+            "reason"
+          ]
+        }
+      },
+      {
+        "headers": {},
+        "parameter_type": "json",
+        "execution_message_type": "prompt",
+        "method": "POST",
+        "query_params": {},
+        "description": "Search Ostad Academy courses. Use when the caller asks what courses are offered, course duration, fees, or details about a specific course.",
+        "enable_typing_sound": false,
+        "type": "custom",
+        "url": "https://instance-341382434.n8nclouds.host/webhook/ostad-search-courses",
+        "args_at_root": true,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "search_courses",
+        "response_variables": {},
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Course topic or keyword the caller mentioned, empty string for all courses"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      }
+    ],
+    "start_speaker": "agent",
+    "begin_message": "Assalamu alaikum, thank you for calling Ostad Academy. This is Nabila, your virtual assistant. How can I help you today?",
+    "knowledge_base_ids": [],
+    "kb_config": {
+      "top_k": 3,
+      "filter_score": 0.6
+    },
+    "last_modification_timestamp": 1784893158460,
+    "is_published": false
+  }
+}
