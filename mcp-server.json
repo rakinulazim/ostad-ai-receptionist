@@ -1,0 +1,389 @@
+﻿{
+  "name": "Ostad AI Receptionist - MCP Server",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ostad-receptionist-v2"
+      },
+      "id": "07982e45-1cb9-4b4b-83e9-d6ce9394d7b0",
+      "name": "Ostad MCP Server",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        112
+      ],
+      "webhookId": "e84277b7-bc9f-4971-9e41-40e4d340d3e5"
+    },
+    {
+      "parameters": {
+        "description": "Search Ostad Academy courses. Use when the caller asks what courses are offered, course duration, fees, or details about a specific course. Pass the course topic mentioned by the caller as query, or an empty string to list all courses.",
+        "workflowId": {
+          "__rl": true,
+          "value": "QsVXN5Pw4ogAjpsN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QsVXN5Pw4ogAjpsN",
+          "cachedResultName": "Ostad Tool - Search Courses"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', 'Course topic or keyword the caller mentioned, empty string for all courses') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "39647898-d3de-43cc-9328-39fde0f2e057",
+      "name": "search_courses",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -112,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Check upcoming class schedules and batch start dates. Use when the caller asks when classes start, class days or class times. Pass the course name, or empty string for all schedules.",
+        "workflowId": {
+          "__rl": true,
+          "value": "5ESpauC4GC1EtMnB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/5ESpauC4GC1EtMnB",
+          "cachedResultName": "Ostad Tool - Check Class Schedule"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "course_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('course_name', 'Name of the course the caller asked about, empty string for all') }}"
+          },
+          "matchingColumns": [
+            "course_name"
+          ],
+          "schema": [
+            {
+              "id": "course_name",
+              "displayName": "course_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "afde81cd-dc73-4ffc-989d-a191f97f47c3",
+      "name": "check_class_schedule",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        128,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Book a free consultation appointment. Only call after collecting all four details from the caller: full name, phone number, preferred date and preferred time. The tool checks availability and either confirms the booking or reports the slot is taken.",
+        "workflowId": {
+          "__rl": true,
+          "value": "GBslyhSVWiOWlq73",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/GBslyhSVWiOWlq73",
+          "cachedResultName": "Ostad Tool - Book Consultation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('name', 'Full name of the caller') }}",
+            "phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone', 'Phone number of the caller') }}",
+            "preferred_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('preferred_date', 'Preferred date in YYYY-MM-DD format') }}",
+            "preferred_time": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('preferred_time', 'Preferred time, e.g. 5:00 PM') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "preferred_date",
+              "displayName": "preferred_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "preferred_time",
+              "displayName": "preferred_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "8bdbb836-affb-4163-b80b-fe266f90f8b9",
+      "name": "book_consultation",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Save an interested caller as a lead in the CRM. Use when the caller shows interest in a course but does not book a consultation. Collect name, phone and interested course first; email is optional.",
+        "workflowId": {
+          "__rl": true,
+          "value": "EtPK4eVhjo0RPRJF",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/EtPK4eVhjo0RPRJF",
+          "cachedResultName": "Ostad Tool - Save Lead"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('name', 'Full name of the caller') }}",
+            "phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone', 'Phone number of the caller') }}",
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', 'Email address if provided, otherwise empty string') }}",
+            "interested_course": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('interested_course', 'Course the caller is interested in') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "interested_course",
+              "displayName": "interested_course",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "9d78ec74-d1b5-48da-ae9c-3dc507075b37",
+      "name": "save_lead",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Escalate to the human support team. Use when the caller wants to talk to a person, has a complaint, or the AI cannot help. Creates a support ticket and notifies the team by email. Collect caller name, phone and a short reason first.",
+        "workflowId": {
+          "__rl": true,
+          "value": "pOeDAqK4kVsC0Tz6",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pOeDAqK4kVsC0Tz6",
+          "cachedResultName": "Ostad Tool - Transfer to Human"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "caller_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('caller_name', 'Full name of the caller') }}",
+            "phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone', 'Phone number of the caller') }}",
+            "reason": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('reason', 'Short reason why the caller needs a human') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "caller_name",
+              "displayName": "caller_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "e197be51-df32-4bc4-b1b5-75aec863a0ba",
+      "name": "transfer_to_human",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        320
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "search_courses": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ostad MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_class_schedule": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ostad MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "book_consultation": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ostad MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save_lead": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ostad MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "transfer_to_human": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ostad MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "5bbeed78-e0cc-4278-aba7-8d1db38de81e",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "defe248e7211b22bef1f3eeb4374b117cf87e440790d055c638ca9df02d4785b"
+  },
+  "nodeGroups": [],
+  "id": "dpvBR1w6H9UJibOe",
+  "tags": []
+}
