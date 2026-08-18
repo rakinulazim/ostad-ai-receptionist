@@ -1,0 +1,156 @@
+﻿{
+  "name": "Ostad Tool - Check Class Schedule",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "course_name"
+            }
+          ]
+        }
+      },
+      "id": "e1b9caba-b5eb-4e1d-b58e-8bd8cacb2a05",
+      "name": "Tool Input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Ostad AI Receptionist DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1,
+          "mode": "list",
+          "cachedResultName": "Courses",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=1"
+        },
+        "options": {}
+      },
+      "id": "cff8ac61-0157-4d9d-a3d5-e906159c4f09",
+      "name": "Read Schedule Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        96
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KmaB872r1U13Yu0z",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "err-1",
+              "name": "response",
+              "value": "Sorry, I could not check the class schedule right now. Please try again shortly.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dabff6a6-3ed8-417d-af3d-475050c5d251",
+      "name": "Database Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const q = (($('Tool Input').first().json.course_name) || '').toLowerCase().trim();\nconst rows = $input.all().map(i => i.json).filter(r => r && (r.CourseName || r['Course Name']));\nconst nameOf = r => r.CourseName ?? r['Course Name'] ?? '';\nif (!rows.length) {\n  return [{ json: { response: 'No upcoming class schedules are published yet. Offer to save the caller as a lead so the team can follow up.' } }];\n}\nconst matches = q ? rows.filter(r => String(nameOf(r)).toLowerCase().includes(q)) : rows;\nif (!matches.length) {\n  return [{ json: { response: `No upcoming batch found for \"${q}\". Courses with scheduled batches: ` + [...new Set(rows.map(nameOf))].join(', ') } }];\n}\nconst lines = matches.slice(0, 5).map(r => `${nameOf(r)}: next batch starts ${r.BatchStart ?? r['Start Date'] ?? 'soon'}, classes ${r.Schedule ?? r['Class Days'] ?? ''} ${r.Time ?? ''}`.trim());\nreturn [{ json: { response: lines.join(' | ') } }];"
+      },
+      "id": "37838356-2991-4b4e-85bb-1f098910a13e",
+      "name": "Format Schedule Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Check Schedule (MCP Tool)\nInput: course_name (string, optional)\nReads Schedule tab -> filters by course -> returns `response` string.",
+        "height": 200,
+        "width": 300
+      },
+      "id": "f43253ef-b8a6-40af-a0b3-3d524c1b3756",
+      "name": "Sticky Note be4b4058",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -160
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Tool Input": {
+      "main": [
+        [
+          {
+            "node": "Read Schedule Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Schedule Sheet": {
+      "main": [
+        [
+          {
+            "node": "Format Schedule Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Database Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "7410d89d-e6b8-4952-a3ca-64ed7f2114f7",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "defe248e7211b22bef1f3eeb4374b117cf87e440790d055c638ca9df02d4785b"
+  },
+  "nodeGroups": [],
+  "id": "5ESpauC4GC1EtMnB",
+  "tags": []
+}
