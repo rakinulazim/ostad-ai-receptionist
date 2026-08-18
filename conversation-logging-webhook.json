@@ -1,0 +1,346 @@
+﻿{
+  "name": "Ostad - Conversation Logging (Retell Webhook)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "call-log",
+        "options": {}
+      },
+      "id": "f81be871-0f3e-4a7f-84c1-afa413179144",
+      "name": "Retell Call Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -48,
+        96
+      ],
+      "webhookId": "9f08a889-e111-4e51-b6d1-564b5045f5be"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.body.event }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "call_analyzed",
+              "id": "189fdfca-149e-48ac-a016-4bda0163e151"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7ce46808-0b72-4f00-981d-e170d4b666de",
+      "name": "Is Call Analyzed Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst call = body.call || {};\nconst analysis = call.call_analysis || {};\nconst durationSec = call.duration_ms ? Math.round(call.duration_ms / 1000) : (call.end_timestamp && call.start_timestamp ? Math.round((call.end_timestamp - call.start_timestamp) / 1000) : 0);\nconst mins = Math.floor(durationSec / 60);\nconst secs = durationSec % 60;\nreturn [{ json: {\n  call_id: call.call_id || '',\n  caller_number: call.from_number || call.to_number || '',\n  timestamp: call.start_timestamp ? new Date(call.start_timestamp).toISOString() : new Date().toISOString(),\n  duration_seconds: durationSec,\n  duration_formatted: `${mins}m ${secs}s`,\n  intent: (analysis.custom_analysis_data && analysis.custom_analysis_data.intent) || 'unknown',\n  sentiment: analysis.user_sentiment || 'Unknown',\n  summary: analysis.call_summary || '',\n  transcript: (call.transcript || '').slice(0, 45000)\n} }];"
+      },
+      "id": "d958f679-16a4-4b68-8be2-208e2412cf67",
+      "name": "Extract Call Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Ostad AI Receptionist DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 5,
+          "mode": "list",
+          "cachedResultName": "CallLogs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=5"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "CallID": "={{ $json.call_id }}",
+            "CallerNumber": "={{ $json.caller_number }}",
+            "Duration": "={{ $json.duration_formatted }}",
+            "DurationSeconds": "={{ $json.duration_seconds }}",
+            "Intent": "={{ $json.intent }}",
+            "Sentiment": "={{ $json.sentiment }}",
+            "Summary": "={{ $json.summary }}",
+            "Timestamp": "={{ $json.timestamp }}",
+            "Transcript": "={{ $json.transcript }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "CallID",
+              "displayName": "CallID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CallerNumber",
+              "displayName": "CallerNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "DurationSeconds",
+              "displayName": "DurationSeconds",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Duration",
+              "displayName": "Duration",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Intent",
+              "displayName": "Intent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SentimentScore",
+              "displayName": "SentimentScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "LeadQuality",
+              "displayName": "LeadQuality",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Topics",
+              "displayName": "Topics",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "FollowUpNeeded",
+              "displayName": "FollowUpNeeded",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Transcript",
+              "displayName": "Transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "cf9083da-8df1-4576-9e31-b6587c7d1a27",
+      "name": "Save Call Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KmaB872r1U13Yu0z",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ig-1",
+              "name": "skipped",
+              "value": "={{ $json.body.event }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e344ae4b-6ea0-44d0-b5e6-db1913821aae",
+      "name": "Ignore Other Events",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Conversation Logging\nSet this webhook URL as the Agent Webhook in Retell dashboard.\nOnly the call_analyzed event is saved (fires once per call with full transcript + analysis).\nSaves: transcript, summary, intent, sentiment, duration, timestamp -> CallLogs tab.",
+        "height": 200,
+        "width": 300
+      },
+      "id": "7c9cbcbf-c81e-496a-a6cc-366a49d909eb",
+      "name": "Sticky Note 2279dcb7",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -160
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Retell Call Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Call Analyzed Event?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Call Analyzed Event?": {
+      "main": [
+        [
+          {
+            "node": "Extract Call Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignore Other Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Call Data": {
+      "main": [
+        [
+          {
+            "node": "Save Call Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "aa4705bc-ff8d-4f72-a016-17a7f8631b12",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "defe248e7211b22bef1f3eeb4374b117cf87e440790d055c638ca9df02d4785b"
+  },
+  "nodeGroups": [],
+  "id": "NaBXnkVxO7ujurCa",
+  "tags": []
+}
