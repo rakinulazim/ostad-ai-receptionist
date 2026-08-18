@@ -1,0 +1,589 @@
+﻿{
+  "name": "Ostad AI Receptionist - Custom Function Webhooks",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ostad-search-courses",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a4e1eb61-bd70-49e3-9195-58f1c358880e",
+      "name": "SearchCourses Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d76c2f73-349a-41d7-94cc-652a9b18053c"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "QsVXN5Pw4ogAjpsN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/QsVXN5Pw4ogAjpsN",
+          "cachedResultName": "Ostad Tool - Search Courses"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ $json.body.query }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "7877fd73-a97c-45b6-bb50-6209c76fab9c",
+      "name": "Call Search Courses",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"spoken_summary\": $json.response } }}",
+        "options": {}
+      },
+      "id": "67cd5302-9b7b-4508-b893-6ea559733dff",
+      "name": "Respond Search Courses",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ostad-check-schedule",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "5545534c-e0d1-4b33-b478-8aca21684999",
+      "name": "CheckSchedule Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        224
+      ],
+      "webhookId": "529f6f5b-3406-4bcf-8cd3-27d88b08fc38"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "5ESpauC4GC1EtMnB",
+          "cachedResultName": "Ostad Tool - Check Class Schedule"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "course_name": "={{ $json.body.course_name }}"
+          },
+          "schema": [
+            {
+              "id": "course_name",
+              "displayName": "course_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": []
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "1251ce84-20a7-458d-a0b5-30755f649b31",
+      "name": "Call Check Schedule",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"spoken_summary\": $json.response } }}",
+        "options": {}
+      },
+      "id": "618d23d6-769f-4340-b737-25ab3e977907",
+      "name": "Respond Check Schedule",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ostad-book-consultation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "387f3619-b3b4-4c27-a72a-8847cbf9c6d0",
+      "name": "BookConsultation Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        448
+      ],
+      "webhookId": "ae67558f-dbec-47a0-b913-4bb00bd8fa11"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "GBslyhSVWiOWlq73",
+          "cachedResultName": "Ostad Tool - Book Consultation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $json.body.name }}",
+            "phone": "={{ $json.body.phone }}",
+            "preferred_date": "={{ $json.body.preferred_date }}",
+            "preferred_time": "={{ $json.body.preferred_time }}"
+          },
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "preferred_date",
+              "displayName": "preferred_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "preferred_time",
+              "displayName": "preferred_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": []
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "eef8a7f9-7a84-4ee0-b6e3-272d27306d45",
+      "name": "Call Book Consultation",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"spoken_summary\": $json.response, \"success\": $json.success } }}",
+        "options": {}
+      },
+      "id": "0b0f8f8e-be37-4a29-8252-c58b3083663a",
+      "name": "Respond Book Consultation",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ostad-save-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ae45713f-3674-49e2-8a59-a23f6916d31a",
+      "name": "SaveLead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        672
+      ],
+      "webhookId": "a33e8812-1807-403a-b302-d1b9590a6e97"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "EtPK4eVhjo0RPRJF",
+          "cachedResultName": "Ostad Tool - Save Lead"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $json.body.name }}",
+            "phone": "={{ $json.body.phone }}",
+            "email": "={{ $json.body.email }}",
+            "interested_course": "={{ $json.body.interested_course }}"
+          },
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "interested_course",
+              "displayName": "interested_course",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": []
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "8d0fdd3a-e3a8-4997-b73a-2ba23c067909",
+      "name": "Call Save Lead",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"spoken_summary\": $json.response } }}",
+        "options": {}
+      },
+      "id": "98235d99-b096-4ee6-ab88-7cb878d3a147",
+      "name": "Respond Save Lead",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ostad-transfer-human",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4605f7a7-bc3f-4f7a-b428-a034fd9dee39",
+      "name": "TransferHuman Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        896
+      ],
+      "webhookId": "b87e412a-f92c-4356-805c-bfcb6a3a2742"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "pOeDAqK4kVsC0Tz6",
+          "cachedResultName": "Ostad Tool - Transfer to Human"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "caller_name": "={{ $json.body.caller_name }}",
+            "phone": "={{ $json.body.phone }}",
+            "reason": "={{ $json.body.reason }}"
+          },
+          "schema": [
+            {
+              "id": "caller_name",
+              "displayName": "caller_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "matchingColumns": []
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "aab9d0ab-8448-4f23-818f-3fc6d99bf910",
+      "name": "Call Transfer Human",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"spoken_summary\": $json.response } }}",
+        "options": {}
+      },
+      "id": "751aae78-c15e-4d65-83cd-d6f7cc897e73",
+      "name": "Respond Transfer Human",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Custom Function Webhooks v2 (flat paths, fresh registration)",
+        "height": 200,
+        "width": 300
+      },
+      "id": "f1b905c8-5447-4182-95f1-2159066e06d0",
+      "name": "Sticky Note 43fa789b",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        -16
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "SearchCourses Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call Search Courses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Search Courses": {
+      "main": [
+        [
+          {
+            "node": "Respond Search Courses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckSchedule Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call Check Schedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Check Schedule": {
+      "main": [
+        [
+          {
+            "node": "Respond Check Schedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BookConsultation Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call Book Consultation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Book Consultation": {
+      "main": [
+        [
+          {
+            "node": "Respond Book Consultation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SaveLead Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call Save Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Save Lead": {
+      "main": [
+        [
+          {
+            "node": "Respond Save Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TransferHuman Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call Transfer Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Transfer Human": {
+      "main": [
+        [
+          {
+            "node": "Respond Transfer Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "c01e9260-ad72-4a91-b162-8f3852aafe89",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "defe248e7211b22bef1f3eeb4374b117cf87e440790d055c638ca9df02d4785b"
+  },
+  "nodeGroups": [],
+  "id": "ezMQmIaqxDrzMoVg",
+  "tags": []
+}
